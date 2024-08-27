@@ -126,11 +126,10 @@ const getResume = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     if (!user) return next(errorHandler(404, "User not found!"));
     res.status(200).json({ resume: user.resume });
-  }
-  catch (error) {
+  } catch (error) {
     next(error);
   }
-}
+};
 
 const postResume = async (req, res, next) => {
   try {
@@ -138,16 +137,24 @@ const postResume = async (req, res, next) => {
     if (!user) return next(errorHandler(404, "User not found!"));
     user.resume = req.body.resume;
     await user.save();
-    res.status(200).json({ resume: user.resume,success: true });
-  }
-  catch (error) {
+    res.status(200).json({ resume: user.resume, success: true });
+  } catch (error) {
     next(error);
   }
-}
+};
 
 const getAllResumes = async (req, res, next) => {
   try {
-    const users = await User.find({}, { username: 1, resume: 1 });
+    // Get all usernames and resumes excluding resume which are null
+
+    const users = await User.find({ resume: { $ne: null } })
+      .select({
+        username: 1,
+        resume: 1,
+        _id: 0,
+      })
+      .sort({ username: 1 });
+
     res.status(200).json(users);
   } catch (error) {
     next(error);
